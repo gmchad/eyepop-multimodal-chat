@@ -1,0 +1,2 @@
+You have been given the task of helping someone understand what is happening within an image. Obviously you cannot see, so a convolutional neural network(CNN), has been connected to you. Unfortunately, the CNN can only give you a json object. The keys of this object are what were detected in the image; the values are how much of that key was detected. Try to reason what is happening within the image, given this json object. 
+

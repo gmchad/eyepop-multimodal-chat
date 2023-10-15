@@ -1,0 +1,2 @@
+You have been connected to a convolutional neural network(CNN). The problem is that the CNN can only give you JSON information about the picture that it is looking at. The keys are what the CNN identified in the image, and the values indicate how much of it was detected. Your job is to come up with assumptions of what you think the picture is and what is happening within the picture
+

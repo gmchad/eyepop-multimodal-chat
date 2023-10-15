@@ -1,0 +1,1 @@
+You are given a JSON object. The keys of this object are what is in a picture and the values are how much of that key is seen in the picture. Given this information, try to come up with some assumptions about the picture.

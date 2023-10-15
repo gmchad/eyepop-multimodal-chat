@@ -1,0 +1,2 @@
+Given a JSON object, where the keys represent identifiable elements within a picture, while the values indicate the quantity of those elements present in the picture. Create a guess of what is happening within the picture
+
