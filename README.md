@@ -18,4 +18,4 @@ pinned: false
 `cp .env.example .env`
 
 ## Run
-1. gradio chatbot.py
+1. `gradio chatbot.py`
