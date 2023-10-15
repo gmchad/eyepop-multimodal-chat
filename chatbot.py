@@ -26,6 +26,21 @@ is and what is happening within the picture
 # file name to image description
 image_dict = {}
 
+def create_prompt(detected_objects):
+  # Create object description string
+  object_descriptions = ", ".join([f"{count} {object_ if count > 1 else object_.rstrip('s')}" 
+                                    for object_, count in detected_objects.items()])
+      
+  # Handle grammatical number for people/person
+  object_descriptions = object_descriptions.replace("1 people", "1 person")
+    
+  # Generate prompt
+  prompt = (f"The image features a scene with {object_descriptions}. "
+            "Craft a vibrant and detailed description of the image, "
+            "including potential interactions or activities that might be happening.")
+      
+  return prompt
+
 def fetch_pop_config(pop_endpoint, token):
     headers = {"Accept": "application/json", "Authorization": f"Bearer {token}"}
     response = requests.get(pop_endpoint, headers=headers)
@@ -52,7 +67,7 @@ def sort_and_count(labels):
     sorted_dict = dict(sorted(count_dict.items()))
     return sorted_dict
 
-def get_json_from_eyepop_file(file_path, config):
+def get_prompt_from_eyepop(file_path, config):
     # Use a with statement to ensure the file is closed after its suite finishes
     with open(file_path, "rb") as f:
         # Create a dictionary to hold the file data
@@ -67,19 +82,19 @@ def get_json_from_eyepop_file(file_path, config):
         if response.status_code == 200:
             data = response.json()
             classy_labels = [obj["classLabel"] for obj in data[0]["objects"]]
-            sorted_objects = sort_and_count(classy_labels)
-            output_string = json.dumps(sorted_objects)
-            print(output_string)
-            return output_string
+            # sort objects
+            sorted_objects: dict = sort_and_count(classy_labels)
+            # generate prompt
+            return create_prompt(sorted_objects)
         else:
             raise("The party's over, there was an error:", response.content)
 
 def add_file(history, file):
   history = history + [[[file.name,], None]]
-  # get image description from eyepop
-  image_file = get_json_from_eyepop_file(file.name, CONFIG)
-  # map file name to eyepop description
-  image_dict[file.name] = image_file
+  # get image prompt from eyepop
+  image_prompt = get_prompt_from_eyepop(file.name, CONFIG)
+  # map file name to eyepop prompt
+  image_dict[file.name] = image_prompt
   return history
 
 def user(user_message, history):
