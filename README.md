@@ -1,5 +1,5 @@
 ---
-title: Gradio Demo
+title: EyePop Multimodal Chat
 emoji: 🐙
 colorFrom: gray
 colorTo: green
