@@ -109,13 +109,19 @@ def predict(message, history):
           history_openai_format.append({"role": "user", "content": human })
           history_openai_format.append({"role": "assistant", "content":assistant})
       
-    # push image description on the stack    
+    # check if message is a filepath and add descrption
+    if not isinstance(message, str):  
+      image_description = image_dict[image_file]
+      message = image_description
+      
+    '''
     if image_file:
       if isinstance(history[-1], tuple):
         print("!!!!!!!!!!!", history[-1])
       # get image description from dictionary and inject prompt 
       image_description = image_dict[image_file]
       message = message + '\n' + image_description
+    '''
       
     history_openai_format.append({"role": "user", "content": message})
     print(2, history_openai_format)
@@ -165,7 +171,7 @@ with gr.Blocks(css=CSS) as demo:
     btn = gr.UploadButton("upload image 🖼️", file_types=["image"])
     
     file_msg = btn.upload(add_file, [chatbot, btn], [chatbot], queue=False) \
-    .then(predict, [msg, chatbot], chatbot) \
+    .then(predict, [btn, chatbot], chatbot) \
     .then(clear, msg, msg)
 
     msg.submit(user, [msg, chatbot], [chatbot], queue=False) \
