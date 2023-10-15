@@ -14,15 +14,6 @@ TOKEN = os.getenv('TOKEN')
 openai.api_key = OPEN_AI_KEY
 CONFIG = None
 
-prompt = """
-You have been connected to a convolutional neural network(CNN). \
-The problem is that the CNN can only give you JSON information about \
-the picture that it is looking at. The keys are what the CNN identified \
-in the image, and the values indicate how much of it was detected. \
-Your job is to come up with assumptions of what you think the picture \
-is and what is happening within the picture
-"""
-
 # file name to image description
 image_dict = {}
 
@@ -36,8 +27,8 @@ def create_prompt(detected_objects):
     
   # Generate prompt
   prompt = (f"The image features a scene with {object_descriptions}. "
-            "Craft a vibrant and detailed description of the image, "
-            "including potential interactions or activities that might be happening.")
+            "Craft a concise, short, description of the image, "
+            "try including potential interactions or activities that might be happening.")
       
   return prompt
 
@@ -97,6 +88,9 @@ def add_file(history, file):
   image_dict[file.name] = image_prompt
   return history
 
+def clear(msg):
+  return ""
+
 def user(user_message, history):
   return history + [[user_message, None]]
 
@@ -109,7 +103,7 @@ def predict(message, history):
         if isinstance(human, tuple):
           image_file = human[0]
           human = human[0]
-          print(image_file)
+          #print(image_file)
         # if assistant is not None, then we have a response from gpt
         if assistant:
           history_openai_format.append({"role": "user", "content": human })
@@ -117,9 +111,11 @@ def predict(message, history):
       
     # push image description on the stack    
     if image_file:
+      if isinstance(history[-1], tuple):
+        print("!!!!!!!!!!!", history[-1])
       # get image description from dictionary and inject prompt 
       image_description = image_dict[image_file]
-      message = prompt + "\n" + image_description
+      message = message + '\n' + image_description
       
     history_openai_format.append({"role": "user", "content": message})
     print(2, history_openai_format)
@@ -137,22 +133,44 @@ def predict(message, history):
             history[-1][1] = history[-1][1] + chunk['choices'][0]['delta']['content']
             yield history
 
-with gr.Blocks() as demo:
-  chatbot = gr.Chatbot()
+CSS ="""
+.contain { display: flex; flex-direction: column; }
+.gradio-container { height: 100vh !important; }
+#component-0 { height: 100%; }
+#chatbot { flex-grow: 1; overflow: auto;}
+"""
+
+title_markdown = ("""
+<h2 align="center"> EyePop Multimodal Chatbot 🐙 </h2>            
+""")
+
+with gr.Blocks(css=CSS) as demo:
+  
+  gr.Markdown(title_markdown)
+  
+  chatbot = gr.Chatbot(
+    elem_id="chatbot",
+    bubble_full_width=False,
+    avatar_images=(None, "./eyepop.png"),
+    show_label=False
+  )
   
   with gr.Row():
     msg = gr.Textbox(
       scale=4,
+      show_label=False,
+      placeholder="Enter text and press enter, or upload an image",
       container=False
     )
-    btn = gr.UploadButton("📁", file_types=["image", "video", "audio"])
+    btn = gr.UploadButton("upload image 🖼️", file_types=["image"])
     
-    file_msg = btn.upload(add_file, [chatbot, btn], [chatbot], queue=False).then(
-        predict, [msg, chatbot], chatbot
-    )
-    
-    msg.submit(user, [msg, chatbot], [chatbot], queue=False).then( 
-      predict, [msg, chatbot], chatbot)
+    file_msg = btn.upload(add_file, [chatbot, btn], [chatbot], queue=False) \
+    .then(predict, [msg, chatbot], chatbot) \
+    .then(clear, msg, msg)
+
+    msg.submit(user, [msg, chatbot], [chatbot], queue=False) \
+    .then(predict, [msg, chatbot], chatbot) \
+    .then(clear, msg, msg)
   
 if __name__ == "__main__":
   CONFIG = fetch_pop_config(POP_ENDPOINT, TOKEN)
